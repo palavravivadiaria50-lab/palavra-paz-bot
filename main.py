@@ -131,7 +131,7 @@ def run_slot(slot: str, handle: str) -> None:
 
 def main() -> None:
     load_dotenv(BASE_DIR / ".env")
-    handle = os.getenv("CHANNEL_HANDLE", "@palavraepaz")
+    handle = os.getenv("CHANNEL_HANDLE", "@palavraepaz.oficial")
 
     parser = argparse.ArgumentParser(
         description="Palavra & Paz - Pipeline Automatizado (Apenas Imagens)"

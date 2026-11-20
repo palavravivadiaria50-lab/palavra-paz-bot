@@ -1,6 +1,6 @@
 # CONTEXT.md — Estado Atual do Projeto (`palavra-paz-bot`)
 
-## Diretrizes Permanentes do Projeto (`@palavraepaz`)
+## Diretrizes Permanentes do Projeto (`@palavraepaz.oficial`)
 1. **Deus ao centro de tudo:** Em qualquer versículo, devocional, frase motivacional ou vídeo, Deus e Jesus Cristo devem ser apresentados como o centro e a resposta para todas as situações (nunca autoajuda secular sem Deus).
 2. **Identidade exclusivamente cristã evangélica:** Todo conteúdo deve seguir estritamente a doutrina e a linguagem cristã evangélica bíblica, evitando sincretismo ou termos de outras religiões.
 3. **Execução controlada e memória travada:** Revisar este `CONTEXT.md` antes de qualquer alteração, preservar travado o uso de `curl.exe`/Schannel no Windows e o lookup literal em `data/biblia_ntlh.json`, e nunca alterar a etapa de vídeo sem aprovação explícita.

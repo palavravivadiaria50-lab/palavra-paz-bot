@@ -3,7 +3,7 @@
 ## 1. Segurança e Isolamento
 - **NUNCA** commitar `.env`, `client_secret.json` ou `token.json` no Git.
 - Todas as credenciais devem ser carregadas exclusivamente via variáveis de ambiente (`python-dotenv`).
-- Manter isolamento estrito de contas: este projeto publica apenas nos canais do **Palavra & Paz** (`@palavraepaz`).
+- Manter isolamento estrito de contas: este projeto publica apenas nos canais do **Palavra & Paz** (`@palavraepaz.oficial`).
 
 ## 2. Padrões de Codificação e Texto (UTF-8)
 - Todos os arquivos `.json`, `.txt` e scripts Python devem usar explicitamente `encoding="utf-8"`.
@@ -23,4 +23,4 @@
 ## 4. Padrões de Cards Minimalistas (4:5)
 - Resolução fixa: `1080x1350` (JPEG qualidade 95).
 - Alternância diária entre `papel_minimalista` (`#F7F5F0`) e `foto_aesthetic` (foto Pixabay com overlay escuro `RGBA(0,0,0,95)`).
-- Assinatura obrigatória discreta `@palavraepaz` no rodapé.
+- Assinatura obrigatória discreta `@palavraepaz.oficial` no rodapé.

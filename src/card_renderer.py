@@ -200,7 +200,7 @@ def _render_on_base(
     referencia_biblica: str = "",
     topo_label: str = "",
     slide_tag: str = "",
-    handle: str = "@palavraepaz",
+    handle: str = "@palavraepaz.oficial",
 ) -> Path:
     """Renderiza texto, referência, topo opcional e rodapé sobre um fundo já preparado."""
     img = base_img.copy()
@@ -321,7 +321,7 @@ def render_card(
     temp_dir: Path,
     referencia_biblica: str = "",
     query_foto: str = "dark wooden table minimalist coffee cup",
-    handle: str = "@palavraepaz",
+    handle: str = "@palavraepaz.oficial",
     paper_color: tuple[int, int, int] = (247, 245, 240),
     photos_dir: Path | None = None,
 ) -> Path:
@@ -349,7 +349,7 @@ def render_carousel(
     devocional_data: dict,
     output_paths: list[Path],
     temp_dir: Path,
-    handle: str = "@palavraepaz",
+    handle: str = "@palavraepaz.oficial",
     paper_color: tuple[int, int, int] = (247, 245, 240),
     photos_dir: Path | None = None,
 ) -> list[Path]:
@@ -398,7 +398,7 @@ def render_animo_card(
     referencia_ancora: str,
     output_jpg: Path,
     estilo_papel: str = "creme",
-    handle: str = "@palavraepaz",
+    handle: str = "@palavraepaz.oficial",
 ) -> Path:
     """Renderiza card editorial 4:5 (15:00) de Fé & Ânimo com frase + divisor + versículo âncora."""
     is_dark = estilo_papel == "carvao"

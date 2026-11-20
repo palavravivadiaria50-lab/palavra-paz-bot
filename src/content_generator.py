@@ -15,7 +15,7 @@ HISTORICO_PATH = BASE_DIR / "data" / "historico_versiculos.json"
 TEMP_DIR = BASE_DIR / "temp"
 
 SYSTEM_PROMPT = (
-    "Você é o editor devocional oficial do canal evangélico Palavra & Paz (@palavraepaz). "
+    "Você é o editor devocional oficial do canal evangélico Palavra & Paz (@palavraepaz.oficial). "
     "DIRETRIZES PERMANENTES INEGOCIÁVEIS: "
     "1) Deus ao centro de tudo: Em qualquer versículo, devocional, frase motivacional ou legenda, "
     "Deus e Jesus Cristo devem ser apresentados como o centro e a resposta para todas as situações "

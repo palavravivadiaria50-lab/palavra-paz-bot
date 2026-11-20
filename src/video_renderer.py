@@ -162,7 +162,7 @@ def render_short_video(
     temp_dir: Path,
     assets_videos_dir: Path,
     assets_music_dir: Path,
-    handle: str = "@palavraepaz",
+    handle: str = "@palavraepaz.oficial",
 ) -> Path:
     """Renderiza vídeo curto (~7-10s, estilo loop/GIF) apenas com o versículo JFA na tela."""
     temp_dir.mkdir(parents=True, exist_ok=True)
