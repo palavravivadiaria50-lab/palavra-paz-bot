@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "titulo": "Devocional 30 Dias com Deus para Ser uma Mulher Intencional",
+    "descricao": "Uma jornada devocional de 30 dias para fortalecer sua fé, propósito e intimidade com Deus no dia a dia.",
+    "url": "https://pay.kiwify.com.br/zL8P4Gk?afid=5TKELHPB",
+    "imagem": "assets/produto_1.jpg",
+    "tag": "Devocional 30 Dias"
+  },
+  {
+    "id": 2,
+    "titulo": "A Cura da Alma Através da Palavra",
+    "descricao": "Reflexões bíblicas profundas para restauração emocional, paz interior e descanso nas promessas de Cristo.",
+    "url": "https://go.hotmart.com/N108594451X",
+    "imagem": "assets/produto_2.jpg",
+    "tag": "Cura & Paz"
+  },
+  {
+    "id": 3,
+    "titulo": "Devocionais Curtos para Começar o Dia com Fé",
+    "descricao": "Leituras rápidas e edificantes para iniciar suas manhãs conectado à Palavra e à presença de Deus.",
+    "url": "https://go.hotmart.com/E108594469I",
+    "imagem": "assets/produto_3.jpg",
+    "tag": "Manhãs com Deus"
+  },
+  {
+    "id": 4,
+    "titulo": "365 Dias com Jesus",
+    "descricao": "Um ano inteiro de meditações diárias para caminhar mais perto de Cristo em todas as estações da vida.",
+    "url": "https://go.hotmart.com/J108594580B",
+    "imagem": "assets/produto_4.jpg",
+    "tag": "Leitura Anual"
+  },
+  {
+    "id": 5,
+    "titulo": "Liderança Cristã Descomplicada para Adolescentes e Jovens",
+    "descricao": "Guia prático com princípios bíblicos para formar e inspirar jovens líderes cristãos com propósito.",
+    "url": "https://go.hotmart.com/T108594623P",
+    "imagem": "assets/produto_5.jpg",
+    "tag": "Jovens & Liderança"
+  },
+  {
+    "id": 6,
+    "titulo": "O Ministro de Louvor Completo",
+    "descricao": "Formação espiritual e prática para servir no ministério de louvor com excelência, reverência e coração adorador.",
+    "url": "https://go.hotmart.com/K108595027Y",
+    "imagem": "assets/produto_6.jpg",
+    "tag": "Adoração & Serviço"
+  }
+]

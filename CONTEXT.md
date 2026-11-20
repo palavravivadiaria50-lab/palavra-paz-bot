@@ -23,3 +23,17 @@
 - **Motor de Imagens (`src/card_renderer.py`):** Cards `1080x1350` validados (`papel_minimalista`, `foto_aesthetic` e card editorial `palavra_animo`).
 - **Publicação Meta (`src/meta_publisher.py`):** Suporte completo a `publish_single_post`, `publish_carousel` (3 slides IG + multi-foto FB) e `publish_story` (IG Stories + FB `photo_stories`) via CDN nativa da Meta.
 - **Agendamento GitHub Actions (`.github/workflows/daily_posts.yml`):** Configurado para os 4 horários BRT com commit/push automático de `data/historico_versiculos.json` e `data/weekly_batch.json`.
+
+---
+
+## Vitrine Link da Bio (`links/` — Deploy Netlify)
+- **Publish directory no Netlify:** `links`
+- **Arquivos:** `links/index.html`, `links/links.json`, `links/assets/logo.jpg` (capas opcionais em `links/assets/produto_1.jpg` a `produto_6.jpg` com fallback `P&P`).
+- **6 Materiais Selecionados:**
+  1. *Devocional 30 Dias com Deus para Ser uma Mulher Intencional* (Kiwify)
+  2. *A Cura da Alma Através da Palavra* (Hotmart)
+  3. *Devocionais Curtos para Começar o Dia com Fé* (Hotmart)
+  4. *365 Dias com Jesus* (Hotmart)
+  5. *Liderança Cristã Descomplicada para Adolescentes e Jovens* (Hotmart)
+  6. *O Ministro de Louvor Completo* (Hotmart)
+- **CTA sutil:** Rotação discreta ao final de `palavra_animo` (15:00) e `devocional_noite` (22:00) entre engajamento e menção ao link da bio `@palavraepaz.oficial`.

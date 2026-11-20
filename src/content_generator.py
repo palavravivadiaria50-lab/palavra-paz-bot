@@ -289,6 +289,10 @@ Retorne um JSON com a chave raiz "dias" contendo "dia_1" a "dia_7".
         raise RuntimeError("Sem versículos disponíveis no fallback curado.")
 
     novas_refs: list[str] = []
+    ctas_rotacao = [
+        "\n\nEnvie esta palavra para alguém que precisa hoje.",
+        "\n\n📖 Para aprofundar seu momento diário com Deus, deixamos devocionais e materiais de edificação separados no link da bio @palavraepaz.oficial",
+    ]
     for idx in range(1, 8):
         key = f"dia_{idx}"
         d = dias[key]
@@ -315,6 +319,9 @@ Retorne um JSON com a chave raiz "dias" contendo "dia_1" a "dia_7".
         d["palavra_animo"]["estilo_papel"] = (
             "creme" if idx % 2 == 1 else "carvao"
         )
+        cta_animo = ctas_rotacao[(idx - 1) % 2]
+        if "@palavraepaz.oficial" not in d["palavra_animo"].get("legenda", ""):
+            d["palavra_animo"]["legenda"] = d["palavra_animo"]["legenda"].rstrip() + cta_animo
         novas_refs.append(v_animo["referencia"])
 
         v_noite = _pick_valid_verse(d["devocional_noite"])
@@ -323,6 +330,9 @@ Retorne um JSON com a chave raiz "dias" contendo "dia_1" a "dia_7".
         d["devocional_noite"]["estilo_visual"] = (
             "foto_aesthetic" if idx % 2 == 1 else "papel_minimalista"
         )
+        cta_noite = ctas_rotacao[idx % 2]
+        if "@palavraepaz.oficial" not in d["devocional_noite"].get("legenda_ig", ""):
+            d["devocional_noite"]["legenda_ig"] = d["devocional_noite"]["legenda_ig"].rstrip() + cta_noite
         novas_refs.append(v_noite["referencia"])
 
     historico.extend(novas_refs)
