@@ -50,6 +50,7 @@ def run_test(handle: str) -> None:
     render_carousel(dm, manha_paths, TEMP_DIR / "test_cards", handle=handle)
 
     vers_path = OUTPUT_DIR / "test_versiculo.jpg"
+    vers_story_path = OUTPUT_DIR / "test_versiculo_story.jpg"
     render_card(
         texto=vd["texto_card"],
         estilo_visual=vd["estilo_visual"],
@@ -58,9 +59,11 @@ def run_test(handle: str) -> None:
         referencia_biblica=vd["referencia_biblica"],
         query_foto=vd.get("query_pixabay_foto", "moody coffee cup ceramic"),
         handle=handle,
+        story_jpg=vers_story_path,
     )
 
     animo_path = OUTPUT_DIR / "test_animo.jpg"
+    animo_story_path = OUTPUT_DIR / "test_animo_story.jpg"
     render_animo_card(
         frase_motivacional=pa["frase_motivacional"],
         versiculo_ancora=pa["versiculo_ancora"],
@@ -68,6 +71,7 @@ def run_test(handle: str) -> None:
         output_jpg=animo_path,
         estilo_papel=pa.get("estilo_papel", "creme"),
         handle=handle,
+        story_jpg=animo_story_path,
     )
 
     noite_paths = [
@@ -93,6 +97,7 @@ def run_slot(slot: str, handle: str) -> None:
     elif slot == "versiculo_dia":
         vd = day_data["versiculo_dia"]
         card_path = OUTPUT_DIR / f"{day_key}_versiculo.jpg"
+        story_path = OUTPUT_DIR / f"{day_key}_versiculo_story.jpg"
         render_card(
             texto=vd["texto_card"],
             estilo_visual=vd["estilo_visual"],
@@ -101,13 +106,15 @@ def run_slot(slot: str, handle: str) -> None:
             referencia_biblica=vd["referencia_biblica"],
             query_foto=vd.get("query_pixabay_foto", "moody coffee cup ceramic"),
             handle=handle,
+            story_jpg=story_path,
         )
         publish_single_post(card_path, vd["legenda_ig"])
-        publish_story(card_path)
+        publish_story(story_path)
 
     elif slot == "palavra_animo":
         pa = day_data["palavra_animo"]
         card_path = OUTPUT_DIR / f"{day_key}_animo.jpg"
+        story_path = OUTPUT_DIR / f"{day_key}_animo_story.jpg"
         render_animo_card(
             frase_motivacional=pa["frase_motivacional"],
             versiculo_ancora=pa["versiculo_ancora"],
@@ -115,9 +122,10 @@ def run_slot(slot: str, handle: str) -> None:
             output_jpg=card_path,
             estilo_papel=pa.get("estilo_papel", "creme"),
             handle=handle,
+            story_jpg=story_path,
         )
         publish_single_post(card_path, pa["legenda"])
-        publish_story(card_path)
+        publish_story(story_path)
 
     elif slot == "devocional_noite":
         dn = day_data["devocional_noite"]

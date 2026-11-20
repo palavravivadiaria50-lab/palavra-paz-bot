@@ -9,9 +9,10 @@
 
 ## Matriz Oficial de Distribuição de Imagens (Horário de Brasília — BRT)
 - `07:00` (`devocional_manha`) → Carrossel 3 slides (`1080x1350`) → **Apenas Feed** (Instagram e Facebook).
-- `08:00` (`versiculo_dia`) → Card Único (`1080x1350`) → **Feed + Stories** (Instagram e Facebook).
-- `15:00` (`palavra_animo`) → Card Único (`1080x1350`) → **Feed + Stories** (Instagram e Facebook).
+- `08:00` (`versiculo_dia`) → Card Único (`1080x1350` Feed) + Versão Nativa (`1080x1920` Stories) → **Feed + Stories** (Instagram e Facebook).
+- `15:00` (`palavra_animo`) → Card Único (`1080x1350` Feed) + Versão Nativa (`1080x1920` Stories) → **Feed + Stories** (Instagram e Facebook).
 - `22:00` (`devocional_noite`) → Carrossel 3 slides (`1080x1350`) → **Apenas Feed** (Instagram e Facebook).
+- **Safe Zone Stories (`1080x1920` — 9:16):** Margem superior `>= 260px`, margem inferior `>= 240px`, margens laterais `>= 110px` (evita zoom/corte automático do Instagram).
 - *Nota:* Motor de vídeo (`Reels / YouTube Shorts / TikTok`) permanece **desativado/pausado** nesta etapa.
 
 ---

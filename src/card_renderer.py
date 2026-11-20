@@ -1,4 +1,4 @@
-"""Módulo C: Motor de Cards Minimalistas 4:5 (1080x1350) usando Pillow."""
+"""Módulo C: Motor de Cards Minimalistas 4:5 (1080x1350) e Stories 9:16 (1080x1920)."""
 
 import json
 import math
@@ -13,6 +13,8 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 CARD_W = 1080
 CARD_H = 1350
+STORY_W = 1080
+STORY_H = 1920
 _LOCAL_PHOTO_INDEX = 0
 
 
@@ -117,77 +119,87 @@ def _fetch_pixabay_photo(query: str, temp_dir: Path) -> Path | None:
         return None
 
 
-def _create_paper_background(bg_rgb: tuple[int, int, int] = (247, 245, 240)) -> Image.Image:
+def _create_paper_background(
+    bg_rgb: tuple[int, int, int] = (247, 245, 240),
+    width: int = CARD_W,
+    height: int = CARD_H,
+) -> Image.Image:
     """Cria fundo editorial com textura sutil de papel."""
     r0, g0, b0 = bg_rgb
-    img = Image.new("RGB", (CARD_W, CARD_H), bg_rgb)
+    img = Image.new("RGB", (width, height), bg_rgb)
     pixels = img.load()
     rng = random.Random(42)
-    for y in range(0, CARD_H, 2):
-        for x in range(0, CARD_W, 2):
+    for y in range(0, height, 2):
+        for x in range(0, width, 2):
             delta = rng.randint(-4, 4)
             r = max(0, min(255, r0 + delta))
             g = max(0, min(255, g0 + delta))
             b = max(0, min(255, b0 + delta))
             pixels[x, y] = (r, g, b)
-            if x + 1 < CARD_W:
+            if x + 1 < width:
                 pixels[x + 1, y] = (r, g, b)
-            if y + 1 < CARD_H:
+            if y + 1 < height:
                 pixels[x, y + 1] = (r, g, b)
     return img
 
 
-def _build_vignette_layer() -> Image.Image:
-    """Gera camada RGBA de vinheta suave nas bordas para 1080x1350."""
-    vignette = Image.new("RGBA", (CARD_W, CARD_H), (0, 0, 0, 0))
+def _build_vignette_layer(width: int = CARD_W, height: int = CARD_H) -> Image.Image:
+    """Gera camada RGBA de vinheta suave nas bordas."""
+    vignette = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     px = vignette.load()
-    cx, cy = CARD_W / 2.0, CARD_H / 2.0
+    cx, cy = width / 2.0, height / 2.0
     max_dist = math.hypot(cx, cy)
 
-    # Calcula em blocos 4x4 para rapidez e suavidade
-    for y in range(0, CARD_H, 4):
-        dy = (y - cy)
-        for x in range(0, CARD_W, 4):
-            dx = (x - cx)
+    for y in range(0, height, 4):
+        dy = y - cy
+        for x in range(0, width, 4):
+            dx = x - cx
             ratio = math.hypot(dx, dy) / max_dist
-            # Vinheta começa a agir a partir de 45% do raio até 85 de alpha nas pontas
             alpha = int(max(0.0, (ratio - 0.45) / 0.55) ** 1.6 * 85)
             val = (10, 8, 6, min(255, alpha))
-            for yy in range(y, min(y + 4, CARD_H)):
-                for xx in range(x, min(x + 4, CARD_W)):
+            for yy in range(y, min(y + 4, height)):
+                for xx in range(x, min(x + 4, width)):
                     px[xx, yy] = val
     return vignette
 
 
-def _create_photo_background(
+def _resolve_photo_path(
     query: str, temp_dir: Path, photos_dir: Path | None = None
-) -> Image.Image:
-    """Usa foto local ou Pixabay com crop central, blur(5), overlay RGBA(20,15,10,120) e vinheta."""
+) -> Path | None:
     photo_path = _pick_local_photo(photos_dir) if photos_dir else None
     if photo_path is None:
         photo_path = _fetch_pixabay_photo(query, temp_dir)
+    return photo_path
+
+
+def _create_photo_background(
+    query: str,
+    temp_dir: Path,
+    photos_dir: Path | None = None,
+    width: int = CARD_W,
+    height: int = CARD_H,
+    photo_path: Path | None = None,
+) -> Image.Image:
+    """Usa foto local ou Pixabay com crop central, blur(5), overlay RGBA(20,15,10,120) e vinheta."""
+    if photo_path is None:
+        photo_path = _resolve_photo_path(query, temp_dir, photos_dir=photos_dir)
 
     if photo_path and photo_path.exists():
         base = Image.open(photo_path).convert("RGB")
-        ratio = max(CARD_W / base.width, CARD_H / base.height)
+        ratio = max(width / base.width, height / base.height)
         new_w = int(base.width * ratio)
         new_h = int(base.height * ratio)
         base = base.resize((new_w, new_h), Image.Resampling.LANCZOS)
-        left = (new_w - CARD_W) // 2
-        top = (new_h - CARD_H) // 2
-        base = base.crop((left, top, left + CARD_W, top + CARD_H))
+        left = (new_w - width) // 2
+        top = (new_h - height) // 2
+        base = base.crop((left, top, left + width, top + height))
     else:
-        base = Image.new("RGB", (CARD_W, CARD_H), (42, 36, 30))
+        base = Image.new("RGB", (width, height), (42, 36, 30))
 
-    # Desfoque suave obrigatório para isolar o fundo e criar efeito de lente
     base = base.filter(ImageFilter.GaussianBlur(radius=5))
-
-    # Overlay escuro e quente (~47%) para alto contraste
-    overlay = Image.new("RGBA", (CARD_W, CARD_H), (20, 15, 10, 120))
+    overlay = Image.new("RGBA", (width, height), (20, 15, 10, 120))
     combined = Image.alpha_composite(base.convert("RGBA"), overlay)
-
-    # Vinheta leve nas bordas
-    vignette = _build_vignette_layer()
+    vignette = _build_vignette_layer(width=width, height=height)
     combined = Image.alpha_composite(combined, vignette)
     return combined.convert("RGB")
 
@@ -201,9 +213,12 @@ def _render_on_base(
     topo_label: str = "",
     slide_tag: str = "",
     handle: str = "@palavraepaz.oficial",
+    is_story: bool = False,
 ) -> Path:
-    """Renderiza texto, referência, topo opcional e rodapé sobre um fundo já preparado."""
+    """Renderiza texto, referência, topo e rodapé respeitando Safe Zone de Feed (4:5) ou Story (9:16)."""
     img = base_img.copy()
+    w, h = img.size
+
     if is_paper:
         text_color = (28, 28, 28)       # #1C1C1C
         ref_color = (74, 70, 64)        # #4A4640
@@ -224,27 +239,29 @@ def _render_on_base(
     )
 
     draw = ImageDraw.Draw(img)
-    margin_x = 140
-    max_text_w = CARD_W - (margin_x * 2)
+    margin_x = 140 if not is_story else 130  # >= 110px safe zone lateral
+    top_y = 275 if is_story else 95          # >= 260px safe zone superior nos Stories
+    footer_y = (h - 265) if is_story else 1240  # >= 240px safe zone inferior nos Stories
 
+    max_text_w = w - (margin_x * 2)
     lines = _wrap_text(draw, texto.strip(), font_main, max_text_w, max_chars=30)
     line_height = int(48 * 1.45)
     block_h = len(lines) * line_height
-    start_y = (CARD_H - block_h) // 2 - (30 if referencia_biblica else 0)
+    start_y = (h - block_h) // 2 - (30 if referencia_biblica else 0)
 
     top_left = topo_label or (datetime.now().strftime("%d.%m") if is_paper else "")
 
     if is_paper:
         if top_left:
-            draw.text((margin_x, 95), top_left, font=font_small, fill=meta_color)
+            draw.text((margin_x, top_y), top_left, font=font_small, fill=meta_color)
         if slide_tag:
             sb = draw.textbbox((0, 0), slide_tag, font=font_small)
-            draw.text((CARD_W - margin_x - (sb[2] - sb[0]), 95), slide_tag, font=font_small, fill=meta_color)
+            draw.text((w - margin_x - (sb[2] - sb[0]), top_y), slide_tag, font=font_small, fill=meta_color)
 
         for i, line in enumerate(lines):
             bbox = draw.textbbox((0, 0), line, font=font_main)
             lw = bbox[2] - bbox[0]
-            x = (CARD_W - lw) // 2
+            x = (w - lw) // 2
             y = start_y + i * line_height
             draw.text((x, y), line, font=font_main, fill=text_color)
 
@@ -252,19 +269,19 @@ def _render_on_base(
             ref_bbox = draw.textbbox((0, 0), referencia_biblica, font=font_ref)
             rw = ref_bbox[2] - ref_bbox[0]
             draw.text(
-                (CARD_W - margin_x - rw, start_y + block_h + 36),
+                (w - margin_x - rw, start_y + block_h + 36),
                 referencia_biblica,
                 font=font_ref,
                 fill=ref_color,
             )
     else:
-        shadow_layer = Image.new("RGBA", (CARD_W, CARD_H), (0, 0, 0, 0))
+        shadow_layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         s_draw = ImageDraw.Draw(shadow_layer)
 
         for i, line in enumerate(lines):
             bbox = draw.textbbox((0, 0), line, font=font_main)
             lw = bbox[2] - bbox[0]
-            x = (CARD_W - lw) // 2
+            x = (w - lw) // 2
             y = start_y + i * line_height
             s_draw.text((x + 2, y + 2), line, font=font_main, fill=(0, 0, 0, 150))
 
@@ -272,7 +289,7 @@ def _render_on_base(
             ref_bbox = draw.textbbox((0, 0), referencia_biblica, font=font_ref)
             rw = ref_bbox[2] - ref_bbox[0]
             s_draw.text(
-                (CARD_W - margin_x - rw + 2, start_y + block_h + 38),
+                (w - margin_x - rw + 2, start_y + block_h + 38),
                 referencia_biblica,
                 font=font_ref,
                 fill=(0, 0, 0, 150),
@@ -283,15 +300,15 @@ def _render_on_base(
         draw = ImageDraw.Draw(img)
 
         if top_left:
-            draw.text((margin_x, 95), top_left, font=font_small, fill=meta_color)
+            draw.text((margin_x, top_y), top_left, font=font_small, fill=meta_color)
         if slide_tag:
             sb = draw.textbbox((0, 0), slide_tag, font=font_small)
-            draw.text((CARD_W - margin_x - (sb[2] - sb[0]), 95), slide_tag, font=font_small, fill=meta_color)
+            draw.text((w - margin_x - (sb[2] - sb[0]), top_y), slide_tag, font=font_small, fill=meta_color)
 
         for i, line in enumerate(lines):
             bbox = draw.textbbox((0, 0), line, font=font_main)
             lw = bbox[2] - bbox[0]
-            x = (CARD_W - lw) // 2
+            x = (w - lw) // 2
             y = start_y + i * line_height
             draw.text((x, y), line, font=font_main, fill=text_color)
 
@@ -299,7 +316,7 @@ def _render_on_base(
             ref_bbox = draw.textbbox((0, 0), referencia_biblica, font=font_ref)
             rw = ref_bbox[2] - ref_bbox[0]
             draw.text(
-                (CARD_W - margin_x - rw, start_y + block_h + 36),
+                (w - margin_x - rw, start_y + block_h + 36),
                 referencia_biblica,
                 font=font_ref,
                 fill=ref_color,
@@ -307,7 +324,7 @@ def _render_on_base(
 
     h_bbox = draw.textbbox((0, 0), handle, font=font_small)
     hw = h_bbox[2] - h_bbox[0]
-    draw.text(((CARD_W - hw) // 2, 1240), handle, font=font_small, fill=meta_color)
+    draw.text(((w - hw) // 2, footer_y), handle, font=font_small, fill=meta_color)
 
     output_jpg.parent.mkdir(parents=True, exist_ok=True)
     img.save(output_jpg, format="JPEG", quality=95)
@@ -324,25 +341,65 @@ def render_card(
     handle: str = "@palavraepaz.oficial",
     paper_color: tuple[int, int, int] = (247, 245, 240),
     photos_dir: Path | None = None,
+    story_jpg: Path | None = None,
 ) -> Path:
-    """Renderiza card único 1080x1350 (papel_minimalista ou foto_aesthetic)."""
+    """Renderiza card único 4:5 (1080x1350) e opcionalmente a versão nativa Stories 9:16 (1080x1920)."""
     if photos_dir is None:
         photos_dir = output_jpg.resolve().parent.parent / "assets" / "photos"
 
     is_paper = estilo_visual == "papel_minimalista"
-    base_img = (
-        _create_paper_background(bg_rgb=paper_color)
+    chosen_photo = (
+        None
         if is_paper
-        else _create_photo_background(query_foto, temp_dir, photos_dir=photos_dir)
+        else _resolve_photo_path(query_foto, temp_dir, photos_dir=photos_dir)
     )
-    return _render_on_base(
+
+    base_img = (
+        _create_paper_background(bg_rgb=paper_color, width=CARD_W, height=CARD_H)
+        if is_paper
+        else _create_photo_background(
+            query_foto,
+            temp_dir,
+            photos_dir=photos_dir,
+            width=CARD_W,
+            height=CARD_H,
+            photo_path=chosen_photo,
+        )
+    )
+    _render_on_base(
         base_img=base_img,
         is_paper=is_paper,
         texto=texto,
         output_jpg=output_jpg,
         referencia_biblica=referencia_biblica,
         handle=handle,
+        is_story=False,
     )
+
+    if story_jpg is not None:
+        story_base = (
+            _create_paper_background(bg_rgb=paper_color, width=STORY_W, height=STORY_H)
+            if is_paper
+            else _create_photo_background(
+                query_foto,
+                temp_dir,
+                photos_dir=photos_dir,
+                width=STORY_W,
+                height=STORY_H,
+                photo_path=chosen_photo,
+            )
+        )
+        _render_on_base(
+            base_img=story_base,
+            is_paper=is_paper,
+            texto=texto,
+            output_jpg=story_jpg,
+            referencia_biblica=referencia_biblica,
+            handle=handle,
+            is_story=True,
+        )
+
+    return output_jpg
 
 
 def render_carousel(
@@ -353,7 +410,7 @@ def render_carousel(
     paper_color: tuple[int, int, int] = (247, 245, 240),
     photos_dir: Path | None = None,
 ) -> list[Path]:
-    """Renderiza carrossel de 3 slides mantendo a mesma base visual."""
+    """Renderiza carrossel de 3 slides 4:5 (1080x1350) mantendo a mesma base visual."""
     if len(output_paths) != 3:
         raise ValueError("render_carousel requer exatamente 3 caminhos de saída.")
 
@@ -362,12 +419,14 @@ def render_carousel(
 
     is_paper = devocional_data["estilo_visual"] == "papel_minimalista"
     base_img = (
-        _create_paper_background(bg_rgb=paper_color)
+        _create_paper_background(bg_rgb=paper_color, width=CARD_W, height=CARD_H)
         if is_paper
         else _create_photo_background(
             devocional_data.get("query_pixabay_foto", "cozy warm soft background"),
             temp_dir,
             photos_dir=photos_dir,
+            width=CARD_W,
+            height=CARD_H,
         )
     )
 
@@ -388,19 +447,22 @@ def render_carousel(
             topo_label=topo,
             slide_tag=tag,
             handle=handle,
+            is_story=False,
         )
     return output_paths
 
 
-def render_animo_card(
+def _draw_animo_canvas(
     frase_motivacional: str,
     versiculo_ancora: str,
     referencia_ancora: str,
     output_jpg: Path,
-    estilo_papel: str = "creme",
-    handle: str = "@palavraepaz.oficial",
+    estilo_papel: str,
+    handle: str,
+    width: int,
+    height: int,
+    is_story: bool,
 ) -> Path:
-    """Renderiza card editorial 4:5 (15:00) de Fé & Ânimo com frase + divisor + versículo âncora."""
     is_dark = estilo_papel == "carvao"
     if is_dark:
         bg_rgb = (28, 27, 26)          # #1C1B1A
@@ -415,7 +477,7 @@ def render_animo_card(
         line_color = (195, 189, 178)
         meta_color = (110, 106, 99)
 
-    img = _create_paper_background(bg_rgb=bg_rgb)
+    img = _create_paper_background(bg_rgb=bg_rgb, width=width, height=height)
     draw = ImageDraw.Draw(img)
 
     font_main = _load_font(
@@ -431,11 +493,13 @@ def render_animo_card(
         ["C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/calibri.ttf"], size=28
     )
 
-    margin_x = 135
-    max_w = CARD_W - (margin_x * 2)
+    margin_x = 135 if not is_story else 130  # >= 110px safe zone lateral
+    top_y = 275 if is_story else 95          # >= 260px safe zone superior
+    footer_y = (height - 265) if is_story else 1240  # >= 240px safe zone inferior
+    max_w = width - (margin_x * 2)
 
     date_str = datetime.now().strftime("%d.%m")
-    draw.text((margin_x, 95), date_str, font=font_small, fill=meta_color)
+    draw.text((margin_x, top_y), date_str, font=font_small, fill=meta_color)
 
     main_lines = _wrap_text(draw, frase_motivacional.strip(), font_main, max_w, max_chars=30)
     main_lh = int(46 * 1.42)
@@ -446,34 +510,69 @@ def render_animo_card(
     verse_h = len(verse_lines) * verse_lh
 
     total_h = main_h + 44 + 44 + verse_h + 46
-    start_y = max(190, (CARD_H - total_h) // 2)
+    min_start = 360 if is_story else 190
+    start_y = max(min_start, (height - total_h) // 2)
 
-    # Frase motivacional cristocêntrica centralizada
     for i, line in enumerate(main_lines):
         bbox = draw.textbbox((0, 0), line, font=font_main)
         lw = bbox[2] - bbox[0]
-        draw.text(((CARD_W - lw) // 2, start_y + i * main_lh), line, font=font_main, fill=main_color)
+        draw.text(((width - lw) // 2, start_y + i * main_lh), line, font=font_main, fill=main_color)
 
-    # Linha divisória sutil
     div_y = start_y + main_h + 44
-    draw.line([(CARD_W // 2 - 90, div_y), (CARD_W // 2 + 90, div_y)], fill=line_color, width=2)
+    draw.line([(width // 2 - 90, div_y), (width // 2 + 90, div_y)], fill=line_color, width=2)
 
-    # Versículo âncora NTLH + referência logo abaixo
     v_start_y = div_y + 42
     for i, line in enumerate(verse_lines):
         bbox = draw.textbbox((0, 0), line, font=font_verse)
         lw = bbox[2] - bbox[0]
-        draw.text(((CARD_W - lw) // 2, v_start_y + i * verse_lh), line, font=font_verse, fill=verse_color)
+        draw.text(((width - lw) // 2, v_start_y + i * verse_lh), line, font=font_verse, fill=verse_color)
 
     ref_bbox = draw.textbbox((0, 0), referencia_ancora, font=font_ref)
     rw = ref_bbox[2] - ref_bbox[0]
-    draw.text(((CARD_W - rw) // 2, v_start_y + verse_h + 22), referencia_ancora, font=font_ref, fill=meta_color)
+    draw.text(((width - rw) // 2, v_start_y + verse_h + 22), referencia_ancora, font=font_ref, fill=meta_color)
 
-    # Assinatura discreta no rodapé
     h_bbox = draw.textbbox((0, 0), handle, font=font_small)
     hw = h_bbox[2] - h_bbox[0]
-    draw.text(((CARD_W - hw) // 2, 1240), handle, font=font_small, fill=meta_color)
+    draw.text(((width - hw) // 2, footer_y), handle, font=font_small, fill=meta_color)
 
     output_jpg.parent.mkdir(parents=True, exist_ok=True)
     img.save(output_jpg, format="JPEG", quality=95)
+    return output_jpg
+
+
+def render_animo_card(
+    frase_motivacional: str,
+    versiculo_ancora: str,
+    referencia_ancora: str,
+    output_jpg: Path,
+    estilo_papel: str = "creme",
+    handle: str = "@palavraepaz.oficial",
+    story_jpg: Path | None = None,
+) -> Path:
+    """Renderiza card editorial 4:5 (1080x1350) e opcionalmente Stories 9:16 (1080x1920)."""
+    _draw_animo_canvas(
+        frase_motivacional=frase_motivacional,
+        versiculo_ancora=versiculo_ancora,
+        referencia_ancora=referencia_ancora,
+        output_jpg=output_jpg,
+        estilo_papel=estilo_papel,
+        handle=handle,
+        width=CARD_W,
+        height=CARD_H,
+        is_story=False,
+    )
+
+    if story_jpg is not None:
+        _draw_animo_canvas(
+            frase_motivacional=frase_motivacional,
+            versiculo_ancora=versiculo_ancora,
+            referencia_ancora=referencia_ancora,
+            output_jpg=story_jpg,
+            estilo_papel=estilo_papel,
+            handle=handle,
+            width=STORY_W,
+            height=STORY_H,
+            is_story=True,
+        )
+
     return output_jpg
