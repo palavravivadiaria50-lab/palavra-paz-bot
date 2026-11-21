@@ -1,0 +1,42 @@
+name: Watchdog - Health Check Diario
+
+on:
+  schedule:
+    # 23:30 BRT (02:30 UTC) -> apos o ultimo ciclo de postagens do dia
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  issues: write
+  contents: read
+
+jobs:
+  watchdog:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar python-dotenv
+        run: |
+          python -m pip install --upgrade pip
+          pip install python-dotenv
+
+      - name: Executar Watchdog
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+        run: |
+          python -u src/watchdog.py

@@ -23,6 +23,7 @@
 - **Motor de Imagens (`src/card_renderer.py`):** Cards `1080x1350` validados (`papel_minimalista`, `foto_aesthetic` e card editorial `palavra_animo`).
 - **Publicação Meta (`src/meta_publisher.py`):** Suporte completo a `publish_single_post`, `publish_carousel` (3 slides IG + multi-foto FB) e `publish_story` (IG Stories + FB `photo_stories`) via CDN nativa da Meta.
 - **Agendamento GitHub Actions (`.github/workflows/daily_posts.yml`):** Configurado para os 4 horários BRT com commit/push automático de `data/historico_versiculos.json` e `data/weekly_batch.json`.
+- **Watchdog / Health Check (`.github/workflows/watchdog.yml` + `src/watchdog.py`):** Roda diariamente às `23:30 BRT` (`02:30 UTC`) verificando workflows das últimas 24h (com até 1 re-run automático em erros transitórios), validade dos tokens (Meta, Pixabay, Gemini), saúde da vitrine `palavraepaz.netlify.app` e abrindo/fechando Issues com rótulo `alerta-automacao`.
 
 ---
 
