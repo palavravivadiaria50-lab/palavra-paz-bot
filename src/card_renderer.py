@@ -399,6 +399,14 @@ def render_card(
             is_story=True,
         )
 
+    # Auto-cleanup da foto bruta baixada da Pixabay em temp_dir (nunca toca em assets/photos/)
+    if chosen_photo is not None:
+        try:
+            if chosen_photo.exists() and temp_dir.resolve() in chosen_photo.resolve().parents:
+                os.remove(chosen_photo)
+        except OSError:
+            pass
+
     return output_jpg
 
 

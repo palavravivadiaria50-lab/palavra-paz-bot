@@ -363,6 +363,51 @@ def sync_github_issue(repo: str, gh_token: str, criticos: list[str], infos: list
             print(f"[Watchdog] Issue #{num} fechada automaticamente (sistema 100% saudável).")
 
 
+def cleanup_old_media() -> tuple[list[str], list[str]]:
+    """Limpeza diária automática: limpa temp/ e mantém no máximo 5 arquivos (<= 2 dias) em output/."""
+    infos: list[str] = []
+    criticos: list[str] = []
+    freed_bytes = 0
+    removed = 0
+
+    # 1. Remove temporários soltos
+    for folder_name in ("temp", "tmp", "cache", "downloads"):
+        folder = BASE_DIR / folder_name
+        if not folder.exists():
+            continue
+        for f in list(folder.rglob("*")):
+            if f.is_file():
+                try:
+                    freed_bytes += f.stat().st_size
+                    os.remove(f)
+                    removed += 1
+                except OSError:
+                    pass
+
+    # 2. Retenção na pasta output/: mantém no máximo os 5 mais recentes e remove > 2 dias
+    out_dir = BASE_DIR / "output"
+    if out_dir.exists():
+        cutoff_ts = (datetime.now(timezone.utc) - timedelta(days=2)).timestamp()
+        all_files = sorted(
+            [f for f in out_dir.rglob("*") if f.is_file()],
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        for idx, f in enumerate(all_files):
+            if idx >= 5 or f.stat().st_mtime < cutoff_ts:
+                try:
+                    freed_bytes += f.stat().st_size
+                    os.remove(f)
+                    removed += 1
+                except OSError:
+                    pass
+
+    infos.append(
+        f"Faxina automática concluída: {removed} arquivo(s) removido(s) ({freed_bytes / 1024 / 1024:.2f} MB liberados)."
+    )
+    return infos, criticos
+
+
 def main() -> None:
     load_dotenv(BASE_DIR / ".env")
     repo = os.getenv("GITHUB_REPO", "palavravivadiaria50-lab/palavra-paz-bot").strip()
@@ -376,6 +421,7 @@ def main() -> None:
         ("Workflows GitHub", lambda: check_github_workflows(repo, gh_token)),
         ("APIs & Tokens", check_apis),
         ("Vitrine Netlify", check_vitrine),
+        ("Auto-Cleanup Mídia", cleanup_old_media),
     ):
         infos, criticos = fn()
         all_infos.extend(infos)

@@ -356,51 +356,61 @@ def generate_short_video(
     fade_out_start = max(0.0, VIDEO_DURATION - 1.5)
     print("[Render] Iniciando FFmpeg (-preset veryfast -crf 23)...")
 
-    if audio_track:
-        filter_complex = (
-            f"[0:v]scale={VIDEO_W}:{VIDEO_H}:force_original_aspect_ratio=increase,"
-            f"crop={VIDEO_W}:{VIDEO_H},setsar=1,fps={VIDEO_FPS}[bg];"
-            f"[bg][1:v]overlay=0:0,"
-            f"fade=t=in:st=0:d=0.8,fade=t=out:st={fade_out_start:.2f}:d=1.2,format=yuv420p[vout];"
-            f"[2:a]volume=0.22,afade=t=in:st=0:d=0.8,afade=t=out:st={fade_out_start:.2f}:d=1.5[aout]"
-        )
-        cmd = [
-            "ffmpeg", "-y",
-            "-stream_loop", "-1", "-t", f"{VIDEO_DURATION:.1f}", "-i", str(bg_mp4.resolve()),
-            "-i", str(overlay_png.resolve()),
-            "-stream_loop", "-1", "-t", f"{VIDEO_DURATION:.1f}", "-i", str(audio_track.resolve()),
-            "-filter_complex", filter_complex,
-            "-map", "[vout]", "-map", "[aout]",
-            "-t", f"{VIDEO_DURATION:.1f}",
-            "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-pix_fmt", "yuv420p",
-            "-c:a", "aac", "-b:a", "128k",
-            "-movflags", "+faststart",
-            str(output_mp4.resolve()),
-        ]
-    else:
-        filter_complex = (
-            f"[0:v]scale={VIDEO_W}:{VIDEO_H}:force_original_aspect_ratio=increase,"
-            f"crop={VIDEO_W}:{VIDEO_H},setsar=1,fps={VIDEO_FPS}[bg];"
-            f"[bg][1:v]overlay=0:0,"
-            f"fade=t=in:st=0:d=0.8,fade=t=out:st={fade_out_start:.2f}:d=1.2,format=yuv420p[vout]"
-        )
-        cmd = [
-            "ffmpeg", "-y",
-            "-stream_loop", "-1", "-t", f"{VIDEO_DURATION:.1f}", "-i", str(bg_mp4.resolve()),
-            "-i", str(overlay_png.resolve()),
-            "-f", "lavfi", "-t", f"{VIDEO_DURATION:.1f}", "-i", "anullsrc=r=44100:cl=stereo",
-            "-filter_complex", filter_complex,
-            "-map", "[vout]", "-map", "2:a:0",
-            "-t", f"{VIDEO_DURATION:.1f}",
-            "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-pix_fmt", "yuv420p",
-            "-c:a", "aac", "-b:a", "128k",
-            "-movflags", "+faststart",
-            str(output_mp4.resolve()),
-        ]
+    try:
+        if audio_track:
+            filter_complex = (
+                f"[0:v]scale={VIDEO_W}:{VIDEO_H}:force_original_aspect_ratio=increase,"
+                f"crop={VIDEO_W}:{VIDEO_H},setsar=1,fps={VIDEO_FPS}[bg];"
+                f"[bg][1:v]overlay=0:0,"
+                f"fade=t=in:st=0:d=0.8,fade=t=out:st={fade_out_start:.2f}:d=1.2,format=yuv420p[vout];"
+                f"[2:a]volume=0.22,afade=t=in:st=0:d=0.8,afade=t=out:st={fade_out_start:.2f}:d=1.5[aout]"
+            )
+            cmd = [
+                "ffmpeg", "-y",
+                "-stream_loop", "-1", "-t", f"{VIDEO_DURATION:.1f}", "-i", str(bg_mp4.resolve()),
+                "-i", str(overlay_png.resolve()),
+                "-stream_loop", "-1", "-t", f"{VIDEO_DURATION:.1f}", "-i", str(audio_track.resolve()),
+                "-filter_complex", filter_complex,
+                "-map", "[vout]", "-map", "[aout]",
+                "-t", f"{VIDEO_DURATION:.1f}",
+                "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-pix_fmt", "yuv420p",
+                "-c:a", "aac", "-b:a", "128k",
+                "-movflags", "+faststart",
+                str(output_mp4.resolve()),
+            ]
+        else:
+            filter_complex = (
+                f"[0:v]scale={VIDEO_W}:{VIDEO_H}:force_original_aspect_ratio=increase,"
+                f"crop={VIDEO_W}:{VIDEO_H},setsar=1,fps={VIDEO_FPS}[bg];"
+                f"[bg][1:v]overlay=0:0,"
+                f"fade=t=in:st=0:d=0.8,fade=t=out:st={fade_out_start:.2f}:d=1.2,format=yuv420p[vout]"
+            )
+            cmd = [
+                "ffmpeg", "-y",
+                "-stream_loop", "-1", "-t", f"{VIDEO_DURATION:.1f}", "-i", str(bg_mp4.resolve()),
+                "-i", str(overlay_png.resolve()),
+                "-f", "lavfi", "-t", f"{VIDEO_DURATION:.1f}", "-i", "anullsrc=r=44100:cl=stereo",
+                "-filter_complex", filter_complex,
+                "-map", "[vout]", "-map", "2:a:0",
+                "-t", f"{VIDEO_DURATION:.1f}",
+                "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-pix_fmt", "yuv420p",
+                "-c:a", "aac", "-b:a", "128k",
+                "-movflags", "+faststart",
+                str(output_mp4.resolve()),
+            ]
 
-    subprocess.run(
-        cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60
-    )
+        subprocess.run(
+            cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60
+        )
+    finally:
+        # Auto-cleanup imediato dos arquivos temporários (vídeo bruto Pixabay + PNG intermediário)
+        for tmp_f in (overlay_png, bg_mp4):
+            try:
+                if tmp_f.exists() and TEMP_DIR.resolve() in tmp_f.resolve().parents:
+                    os.remove(tmp_f)
+            except OSError:
+                pass
+
     elapsed = time.time() - t0
     print(f"[Render] Concluído em {elapsed:.1f}s -> {output_mp4}")
     return output_mp4, meta

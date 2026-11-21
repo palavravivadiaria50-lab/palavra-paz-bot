@@ -3,7 +3,12 @@ client_secret.json
 token.json
 output/
 temp/
+tmp/
+cache/
+downloads/
+assets/cache/
 venv/
 .venv/
 __pycache__/
 *.pyc
+*.mp4
