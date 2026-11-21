@@ -327,6 +327,25 @@ def _pick_audio_track(audio_dir: Path = ASSETS_AUDIO) -> Path | None:
     return random.choice(tracks) if tracks else None
 
 
+def _get_audio_duration(audio_path: Path) -> float:
+    try:
+        res = subprocess.run(
+            [
+                "ffprobe", "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                str(audio_path),
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=10,
+        )
+        return float(res.stdout.strip())
+    except Exception:
+        return 18.0
+
+
 def generate_short_video(
     slot: str = "versiculo_dia",
     output_mp4: Path | None = None,
@@ -353,23 +372,31 @@ def generate_short_video(
     )
     audio_track = _pick_audio_track(ASSETS_AUDIO)
 
-    fade_out_start = max(0.0, VIDEO_DURATION - 1.5)
+    v_fade_out = max(0.0, VIDEO_DURATION - 1.5)
+    a_fade_out = max(0.0, VIDEO_DURATION - 2.5)
     print("[Render] Iniciando FFmpeg (-preset veryfast -crf 23)...")
 
     try:
         if audio_track:
+            track_dur = _get_audio_duration(audio_track)
+            max_offset = max(0.0, track_dur - VIDEO_DURATION - 0.5)
+            start_offset = round(random.uniform(0.0, max_offset), 2) if max_offset > 0.5 else 0.0
+            print(
+                f"[Audio] Trilha sorteada: {audio_track.name} "
+                f"(trecho {start_offset:.1f}s -> {start_offset + VIDEO_DURATION:.1f}s, volume=0.45)"
+            )
             filter_complex = (
                 f"[0:v]scale={VIDEO_W}:{VIDEO_H}:force_original_aspect_ratio=increase,"
                 f"crop={VIDEO_W}:{VIDEO_H},setsar=1,fps={VIDEO_FPS}[bg];"
                 f"[bg][1:v]overlay=0:0,"
-                f"fade=t=in:st=0:d=0.8,fade=t=out:st={fade_out_start:.2f}:d=1.2,format=yuv420p[vout];"
-                f"[2:a]volume=0.22,afade=t=in:st=0:d=0.8,afade=t=out:st={fade_out_start:.2f}:d=1.5[aout]"
+                f"fade=t=in:st=0:d=0.8,fade=t=out:st={v_fade_out:.2f}:d=1.2,format=yuv420p[vout];"
+                f"[2:a]volume=0.45,afade=t=in:st=0:d=1.5,afade=t=out:st={a_fade_out:.2f}:d=2.5[aout]"
             )
             cmd = [
                 "ffmpeg", "-y",
                 "-stream_loop", "-1", "-t", f"{VIDEO_DURATION:.1f}", "-i", str(bg_mp4.resolve()),
                 "-i", str(overlay_png.resolve()),
-                "-stream_loop", "-1", "-t", f"{VIDEO_DURATION:.1f}", "-i", str(audio_track.resolve()),
+                "-ss", f"{start_offset:.2f}", "-t", f"{VIDEO_DURATION:.1f}", "-i", str(audio_track.resolve()),
                 "-filter_complex", filter_complex,
                 "-map", "[vout]", "-map", "[aout]",
                 "-t", f"{VIDEO_DURATION:.1f}",
@@ -383,7 +410,7 @@ def generate_short_video(
                 f"[0:v]scale={VIDEO_W}:{VIDEO_H}:force_original_aspect_ratio=increase,"
                 f"crop={VIDEO_W}:{VIDEO_H},setsar=1,fps={VIDEO_FPS}[bg];"
                 f"[bg][1:v]overlay=0:0,"
-                f"fade=t=in:st=0:d=0.8,fade=t=out:st={fade_out_start:.2f}:d=1.2,format=yuv420p[vout]"
+                f"fade=t=in:st=0:d=0.8,fade=t=out:st={v_fade_out:.2f}:d=1.2,format=yuv420p[vout]"
             )
             cmd = [
                 "ffmpeg", "-y",
