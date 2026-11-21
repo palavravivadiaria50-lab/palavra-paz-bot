@@ -13,7 +13,15 @@
 - `15:00` (`palavra_animo`) → Card Único (`1080x1350` Feed) + Versão Nativa (`1080x1920` Stories) → **Feed + Stories** (Instagram e Facebook).
 - `22:00` (`devocional_noite`) → Carrossel 3 slides (`1080x1350`) → **Apenas Feed** (Instagram e Facebook).
 - **Safe Zone Stories (`1080x1920` — 9:16):** Margem superior `>= 260px`, margem inferior `>= 240px`, margens laterais `>= 110px` (evita zoom/corte automático do Instagram).
-- *Nota:* Motor de vídeo (`Reels / YouTube Shorts / TikTok`) permanece **desativado/pausado** nesta etapa.
+
+---
+
+## Pipeline Modular de Vídeos Curtos (YouTube Shorts & TikTok — Isolado do IG/FB)
+- **Isolamento estrito:** Fluxo de imagens (`daily_posts.yml` + `src/meta_publisher.py`) permanece 100% intacto e exclusivo para Instagram/Facebook.
+- **Módulos:** `src/video_generator.py` (reaproveita textos de `data/weekly_batch.json` sem custo de tokens, baixa vídeos verticais HD da Pixabay sem repetir `data/historico_videos.json`, renderiza overlay Pillow + fade-in FFmpeg em `1080x1920`, `30fps`, `10s`, com trilha opcional em `assets/audio/` ou áudio silencioso válido) e `src/video_publisher.py` (YouTube Data API v3 + TikTok Content Posting API, operando inicialmente em `DRY_RUN=true`).
+- **Agendamento (`.github/workflows/daily_videos.yml` — 10 min após os cards):**
+  - `08:10 BRT` (`10 11 * * *` UTC) → `versiculo_dia`
+  - `15:10 BRT` (`10 18 * * *` UTC) → `palavra_animo`
 
 ---
 

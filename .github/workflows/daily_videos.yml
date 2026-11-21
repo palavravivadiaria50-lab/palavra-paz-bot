@@ -1,0 +1,79 @@
+name: Palavra e Paz - Videos Curtos (YouTube Shorts e TikTok)
+
+on:
+  schedule:
+    # 08:10 BRT (11:10 UTC) -> 10 min apos versiculo_dia (08:00 BRT)
+    - cron: '10 11 * * *'
+    # 15:10 BRT (18:10 UTC) -> 10 min apos palavra_animo (15:00 BRT)
+    - cron: '10 18 * * *'
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: 'Slot de video curto para executar'
+        required: true
+        type: choice
+        options:
+          - versiculo_dia
+          - palavra_animo
+
+permissions:
+  contents: write
+
+jobs:
+  short_video:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Garantir FFmpeg disponivel
+        shell: pwsh
+        run: |
+          if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
+            choco install ffmpeg -y
+          }
+          ffmpeg -version | Select-Object -First 1
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Executar geracao e publicacao de video curto
+        shell: pwsh
+        env:
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          CHANNEL_HANDLE: '@palavraepaz.oficial'
+          DRY_RUN: 'true'
+          TIKTOK_ACCESS_TOKEN: ${{ secrets.TIKTOK_ACCESS_TOKEN }}
+        run: |
+          $slot = "${{ github.event.inputs.slot }}"
+          if (-not $slot) {
+            switch ("${{ github.event.schedule }}") {
+              "10 11 * * *" { $slot = "versiculo_dia" }
+              "10 18 * * *" { $slot = "palavra_animo" }
+              default       { throw "Schedule nao mapeado: ${{ github.event.schedule }}" }
+            }
+          }
+          Write-Host "Executando video curto para slot: $slot (DRY_RUN=$env:DRY_RUN)"
+          python -u src/video_publisher.py --slot $slot
+
+      - name: Commit e push do historico de videos Pixabay
+        if: always()
+        shell: pwsh
+        run: |
+          git config user.name "jorgecesar"
+          git config user.email "jorginho_cesar@hotmail.com"
+          if (Test-Path data/historico_videos.json) {
+            git add data/historico_videos.json
+            $status = git status --porcelain
+            if ($status) {
+              git commit -m "chore: atualiza historico de videos Pixabay"
+              git push
+            }
+          }
