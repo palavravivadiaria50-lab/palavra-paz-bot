@@ -108,9 +108,17 @@ def check_github_workflows(repo: str, gh_token: str) -> tuple[list[str], list[st
 
     runs = json.loads(body).get("workflow_runs", [])
     cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+    status_file = BASE_DIR / "data" / "status_publicacoes.json"
+    try:
+        st_data = json.loads(status_file.read_text(encoding="utf-8")) if status_file.exists() else {}
+    except Exception:
+        st_data = {}
+    already_rerun_ids: set[str] = set(str(x) for x in st_data.get("watchdog_reruns", []))
 
     for run in runs:
         if "watchdog" in (run.get("path") or "").lower():
+            continue
+        if run.get("status") != "completed":
             continue
         created_str = run.get("created_at", "")
         if not created_str:
@@ -160,15 +168,21 @@ def check_github_workflows(repo: str, gh_token: str) -> tuple[list[str], list[st
             else ""
         )
 
-        if is_transient and attempt == 1:
+        if is_transient and attempt == 1 and str(run_id) not in already_rerun_ids:
             rr_code, _ = _curl_request(
                 f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/rerun-failed-jobs",
                 method="POST",
                 headers=headers,
             )
             if rr_code in (200, 201):
+                already_rerun_ids.add(str(run_id))
+                st_data["watchdog_reruns"] = sorted(already_rerun_ids)
+                status_file.parent.mkdir(parents=True, exist_ok=True)
+                status_file.write_text(
+                    json.dumps(st_data, ensure_ascii=False, indent=2), encoding="utf-8"
+                )
                 infos.append(
-                    f"Re-run disparado automaticamente para '{name}' (run {run_id}, erro transitório){fb_note}."
+                    f"Re-run disparado automaticamente para '{name}' (run {run_id}, tentativa 1 -> 2, erro transitório){fb_note}."
                 )
                 continue
 

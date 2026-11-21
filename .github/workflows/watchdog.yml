@@ -4,6 +4,10 @@ on:
   schedule:
     # 23:30 BRT (02:30 UTC) -> apos o ultimo ciclo de postagens do dia
     - cron: '30 2 * * *'
+  workflow_run:
+    workflows: ["Palavra e Paz - Publicacao Diaria (Imagens)"]
+    types:
+      - completed
   workflow_dispatch:
 
 permissions:
@@ -14,6 +18,10 @@ permissions:
 jobs:
   watchdog:
     runs-on: windows-latest
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'failure' ||
+      github.event.workflow_run.run_attempt > 1
     steps:
       - name: Checkout repositorio
         uses: actions/checkout@v4
@@ -39,4 +47,8 @@ jobs:
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
         run: |
+          if ("${{ github.event_name }}" -eq "workflow_run") {
+            Write-Host "Acionado pos-postagem (workflow_run). Aguardando 30s antes do diagnostico..."
+            Start-Sleep -Seconds 30
+          }
           python -u src/watchdog.py
