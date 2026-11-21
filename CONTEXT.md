@@ -21,9 +21,9 @@
 - **Base Bíblica NTLH (`data/biblia_ntlh.json`) + Anti-Repetição (`data/historico_versiculos.json`):** Lookup 100% literal garantido pelo Python após curadoria contextual do Gemini.
 - **Comunicação Externa (`curl.exe` / Schannel):** Todas as chamadas à Gemini REST API, Pixabay API e Meta Graph API v21.0 usam `curl.exe` nativo do Windows, evitando erros de SSL (`_ssl.c:1006`).
 - **Motor de Imagens (`src/card_renderer.py`):** Cards `1080x1350` validados (`papel_minimalista`, `foto_aesthetic` e card editorial `palavra_animo`).
-- **Publicação Meta (`src/meta_publisher.py`):** Suporte completo a `publish_single_post`, `publish_carousel` (3 slides IG + multi-foto FB) e `publish_story` (IG Stories + FB `photo_stories`) via CDN nativa da Meta.
-- **Agendamento GitHub Actions (`.github/workflows/daily_posts.yml`):** Configurado para os 4 horários BRT com commit/push automático de `data/historico_versiculos.json` e `data/weekly_batch.json`.
-- **Watchdog / Health Check (`.github/workflows/watchdog.yml` + `src/watchdog.py`):** Roda diariamente às `23:30 BRT` (`02:30 UTC`) verificando workflows das últimas 24h (com até 1 re-run automático em erros transitórios), validade dos tokens (Meta, Pixabay, Gemini), saúde da vitrine `palavraepaz.netlify.app` e abrindo/fechando Issues com rótulo `alerta-automacao`.
+- **Publicação Meta (`src/meta_publisher.py`):** Suporte completo a `publish_single_post`, `publish_carousel` (3 slides IG + multi-foto FB) e `publish_story` (IG Stories + FB `photo_stories`) via CDN nativa da Meta, com **retry progressivo (4 tentativas: 10s, 15s, 20s)** para erros transitórios do Instagram (`code: 9007`, `error_subcode: 2207027`, `is_transient: true`) e registro anti-duplicidade em `data/status_publicacoes.json`.
+- **Agendamento GitHub Actions (`.github/workflows/daily_posts.yml`):** Configurado para os 4 horários BRT com commit/push automático (`if: always()`) de `data/historico_versiculos.json`, `data/weekly_batch.json` e `data/status_publicacoes.json`.
+- **Watchdog / Health Check (`.github/workflows/watchdog.yml` + `src/watchdog.py`):** Roda diariamente às `23:30 BRT` (`02:30 UTC`) verificando workflows das últimas 24h (reconhecendo erros transitórios da Meta `9007`/`2207027`/`is_transient` para 1 re-run automático e registrando se o Facebook já havia publicado), validade dos tokens (Meta, Pixabay, Gemini), saúde da vitrine `palavraepaz.netlify.app` e abrindo/fechando Issues com rótulo `alerta-automacao`.
 
 ---
 

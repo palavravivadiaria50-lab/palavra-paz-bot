@@ -26,6 +26,11 @@ TRANSIENT_MARKERS = (
     "connection reset",
     "ssl",
     "rate limit",
+    "9007",
+    "2207027",
+    "is_transient",
+    "not ready to be published",
+    "aguarde um momento",
 )
 
 
@@ -144,6 +149,16 @@ def check_github_workflows(repo: str, gh_token: str) -> tuple[list[str], list[st
 
         lower_err = error_excerpt.lower()
         is_transient = any(m in lower_err for m in TRANSIENT_MARKERS)
+        fb_already_ok = (
+            "[facebook feed] publicado" in lower_err
+            or "[facebook carrossel] publicado" in lower_err
+            or "[facebook story] publicado" in lower_err
+        )
+        fb_note = (
+            " (Facebook já publicado na tentativa anterior; anti-duplicidade ativo)"
+            if fb_already_ok
+            else ""
+        )
 
         if is_transient and attempt == 1:
             rr_code, _ = _curl_request(
@@ -153,12 +168,12 @@ def check_github_workflows(repo: str, gh_token: str) -> tuple[list[str], list[st
             )
             if rr_code in (200, 201):
                 infos.append(
-                    f"Re-run disparado automaticamente para '{name}' (run {run_id}, erro transitório)."
+                    f"Re-run disparado automaticamente para '{name}' (run {run_id}, erro transitório){fb_note}."
                 )
                 continue
 
         criticos.append(
-            f"Falha no workflow **{name}** (`run_id={run_id}`, tentativa `{attempt}`, criado em `{created_str}`):\n"
+            f"Falha no workflow **{name}** (`run_id={run_id}`, tentativa `{attempt}`, criado em `{created_str}`){fb_note}:\n"
             f"- Link: {html_url}\n"
             f"- Trecho do erro:\n```text\n{error_excerpt}\n```"
         )

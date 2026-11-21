@@ -72,15 +72,19 @@ jobs:
           Write-Host "Executando slot: $slot"
           python -u main.py --slot $slot
 
-      - name: Commit e push do historico de versiculos
+      - name: Commit e push do historico de versiculos e status
+        if: always()
         shell: pwsh
         run: |
-          git config user.name "palavra-paz-bot"
-          git config user.email "bot@palavraepaz.local"
+          git config user.name "jorgecesar"
+          git config user.email "jorginho_cesar@hotmail.com"
+          if (Test-Path data/status_publicacoes.json) {
+            git add data/status_publicacoes.json
+          }
           git add data/historico_versiculos.json data/weekly_batch.json
           $status = git status --porcelain
           if ($status) {
-            git commit -m "chore: atualiza historico NTLH e lote semanal"
+            git commit -m "chore: atualiza historico NTLH, lote semanal e status de publicacao"
             git push
           } else {
             Write-Host "Sem alteracoes em data/ para commitar."
