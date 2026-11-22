@@ -49,7 +49,9 @@ jobs:
         env:
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
           CHANNEL_HANDLE: '@palavraepaz.oficial'
-          DRY_RUN: 'true'
+          YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
+          YOUTUBE_DRY_RUN: 'false'
+          TIKTOK_DRY_RUN: 'true'
           TIKTOK_ACCESS_TOKEN: ${{ secrets.TIKTOK_ACCESS_TOKEN }}
         run: |
           $slot = "${{ github.event.inputs.slot }}"
@@ -60,7 +62,7 @@ jobs:
               default       { throw "Schedule nao mapeado: ${{ github.event.schedule }}" }
             }
           }
-          Write-Host "Executando video curto para slot: $slot (DRY_RUN=$env:DRY_RUN)"
+          Write-Host "Executando video curto para slot: $slot (YT_DRY_RUN=$env:YOUTUBE_DRY_RUN | TT_DRY_RUN=$env:TIKTOK_DRY_RUN)"
           python -u src/video_publisher.py --slot $slot
 
       - name: Commit e push do historico de videos Pixabay

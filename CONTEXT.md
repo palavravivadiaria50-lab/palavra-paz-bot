@@ -18,7 +18,7 @@
 
 ## Pipeline Modular de Vídeos Curtos (YouTube Shorts & TikTok — Isolado do IG/FB)
 - **Isolamento estrito:** Fluxo de imagens (`daily_posts.yml` + `src/meta_publisher.py`) permanece 100% intacto e exclusivo para Instagram/Facebook.
-- **Módulos:** `src/video_generator.py` (reaproveita textos de `data/weekly_batch.json` sem custo de tokens, baixa vídeos verticais HD da Pixabay sem repetir `data/historico_videos.json`, renderiza overlay Pillow com fontes portáveis `assets/fonts/Lora-*.ttf` + fade-in/out FFmpeg em `1080x1920`, `30fps`, `10s`, sorteando automaticamente 1 das 6 trilhas instrumentais de oração em `assets/audio/trilha_01.mp3` a `trilha_06.mp3` com `volume=0.45`, fade-in `1.5s` e fade-out `2.5s`) e `src/video_publisher.py` (YouTube Data API v3 + TikTok Content Posting API, operando inicialmente em `DRY_RUN=true`).
+- **Módulos:** `src/video_generator.py` (reaproveita textos de `data/weekly_batch.json` sem custo de tokens, baixa vídeos verticais HD da Pixabay sem repetir `data/historico_videos.json`, renderiza overlay Pillow com fontes portáveis `assets/fonts/Lora-*.ttf` + fade-in/out FFmpeg em `1080x1920`, `30fps`, `10s`, sorteando automaticamente 1 das 6 trilhas instrumentais de oração em `assets/audio/trilha_01.mp3` a `trilha_06.mp3` com `volume=0.45`, fade-in `1.5s` e fade-out `2.5s`) e `src/video_publisher.py` (YouTube Shorts **ATIVO** via `curl.exe` + OAuth `YOUTUBE_TOKEN_JSON`, TikTok em `TIKTOK_DRY_RUN=true` aguardando token).
 - **Agendamento (`.github/workflows/daily_videos.yml` — 10 min após os cards):**
   - `08:10 BRT` (`10 11 * * *` UTC) → `versiculo_dia`
   - `15:10 BRT` (`10 18 * * *` UTC) → `palavra_animo`
