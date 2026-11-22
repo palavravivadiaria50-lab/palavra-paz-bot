@@ -26,7 +26,7 @@
 ---
 
 ## Estado Atual (Validado e Travado)
-- **Base Bíblica NTLH (`data/biblia_ntlh.json`) + Anti-Repetição (`data/historico_versiculos.json`):** Lookup 100% literal garantido pelo Python após curadoria contextual do Gemini.
+- **Base Bíblica NTLH (`data/biblia_ntlh.json`) + Anti-Repetição (`data/historico_versiculos.json`):** Lookup 100% literal garantido pelo Python após curadoria contextual do Gemini, agora com **Inteligência de Contexto Semanal (`get_weekly_context()` em `America/Sao_Paulo`)** adaptando o tom e os versículos para Segunda (Recomeço/Força), Terça–Quinta (Perseverança/Foco), Sexta (Gratidão/Alívio), Sábado (Descanso/Família) e Domingo (Adoração/Comunhão).
 - **Comunicação Externa (`curl.exe` / Schannel):** Todas as chamadas à Gemini REST API, Pixabay API e Meta Graph API v21.0 usam `curl.exe` nativo do Windows, evitando erros de SSL (`_ssl.c:1006`).
 - **Motor de Imagens (`src/card_renderer.py`):** Cards `1080x1350` validados (`papel_minimalista`, `foto_aesthetic` e card editorial `palavra_animo`).
 - **Publicação Meta (`src/meta_publisher.py`):** Suporte completo a `publish_single_post`, `publish_carousel` (3 slides IG + multi-foto FB) e `publish_story` (IG Stories + FB `photo_stories`) via CDN nativa da Meta, com **retry progressivo (4 tentativas: 10s, 15s, 20s)** para erros transitórios do Instagram (`code: 9007`, `error_subcode: 2207027`, `is_transient: true`) e registro anti-duplicidade em `data/status_publicacoes.json`.

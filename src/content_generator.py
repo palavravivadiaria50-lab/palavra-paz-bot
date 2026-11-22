@@ -1,12 +1,19 @@
 """Módulo A: Curadoria contextual cristã (Gemini) + Lookup 100% literal NTLH."""
 
+import argparse
 import json
 import os
 import subprocess
 import time
 import unicodedata
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+try:
+    from zoneinfo import ZoneInfo
+    BRT_TZ = ZoneInfo("America/Sao_Paulo")
+except Exception:
+    BRT_TZ = timezone(timedelta(hours=-3))
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -56,6 +63,77 @@ FALLBACK_CURADO = [
     ("Hebreus", 11, 1),
     ("Mateus", 28, 20),
 ]
+
+
+WEEKLY_CONTEXT_MAP = {
+    1: {
+        "dia_nome": "Segunda-feira",
+        "tema_semanal": "Recomeço, Força e Ânimo",
+        "contexto": "Início de semana; muitas pessoas acordam desanimadas ou ansiosas com trabalho e desafios.",
+        "tom": (
+            "Encorajador de recomeço, coragem e entrega da semana a Deus. "
+            "PROIBIDO falar de 'fim de semana' ou 'descanso da semana que passou'."
+        ),
+        "exemplos": "Josué 1:9, Lamentações 3:22-23, Salmos 37:5, Isaías 41:10",
+    },
+    2: {
+        "dia_nome": "Terça-feira",
+        "tema_semanal": "Perseverança, Foco e Confiança",
+        "contexto": "Meio da semana, rotina pesada e cansaço acumulado.",
+        "tom": "Perseverança, sabedoria nas decisões, paciência e paz no meio da correria.",
+        "exemplos": "Gálatas 6:9, Provérbios 3:5-6, Filipenses 4:6-7, Romanos 12:12",
+    },
+    3: {
+        "dia_nome": "Quarta-feira",
+        "tema_semanal": "Perseverança, Foco e Confiança",
+        "contexto": "Meio da semana, rotina pesada e cansaço acumulado.",
+        "tom": "Perseverança, sabedoria nas decisões, paciência e paz no meio da correria.",
+        "exemplos": "Gálatas 6:9, Provérbios 3:5-6, Filipenses 4:6-7, Romanos 12:12",
+    },
+    4: {
+        "dia_nome": "Quinta-feira",
+        "tema_semanal": "Perseverança, Foco e Confiança",
+        "contexto": "Meio da semana, rotina pesada e cansaço acumulado.",
+        "tom": "Perseverança, sabedoria nas decisões, paciência e paz no meio da correria.",
+        "exemplos": "Gálatas 6:9, Provérbios 3:5-6, Filipenses 4:6-7, Romanos 12:12",
+    },
+    5: {
+        "dia_nome": "Sexta-feira",
+        "tema_semanal": "Gratidão pela Semana Vencida e Alívio",
+        "contexto": "Encerramento da semana útil, dever cumprido e transição para o descanso.",
+        "tom": "Gratidão por Deus ter sustentado até aqui, livramentos da semana e entrega do cansaço.",
+        "exemplos": "Salmos 126:3, Salmos 103:2, Mateus 11:28",
+    },
+    6: {
+        "dia_nome": "Sábado",
+        "tema_semanal": "Descanso, Família, Leveza e Renovação",
+        "contexto": "Dia de desacelerar, curtir a família e renovar as energias.",
+        "tom": "Leve e acolhedor, focado em paz no lar, descanso da alma e alegria.",
+        "exemplos": "Salmos 23:2-3, Salmos 127:1-2, Eclesiastes 3:12-13, Salmos 4:8",
+    },
+    7: {
+        "dia_nome": "Domingo",
+        "tema_semanal": "Adoração, Comunhão, Gratidão e Preparo Espiritual",
+        "contexto": "Dia do Senhor, culto/igreja, reflexão profunda e preparo espiritual para a nova semana.",
+        "tom": "Adoração, presença de Deus, renovação espiritual e esperança.",
+        "exemplos": "Salmos 122:1, Salmos 118:24, Hebreus 10:24-25, Salmos 95:1-2",
+    },
+}
+
+
+def get_weekly_context(weekday: int | None = None) -> dict:
+    """Retorna o contexto semanal cristão para o dia da semana em America/Sao_Paulo (1=Seg..7=Dom)."""
+    if weekday is None:
+        weekday = datetime.now(BRT_TZ).isoweekday()
+    weekday = max(1, min(7, int(weekday)))
+    info = WEEKLY_CONTEXT_MAP[weekday]
+    prompt_bloco = (
+        f"{info['dia_nome']} ({info['tema_semanal']}): "
+        f"Contexto: {info['contexto']} "
+        f"Tom: {info['tom']} "
+        f"Referências inspiradoras (sem repetir histórico): {info['exemplos']}."
+    )
+    return {"weekday": weekday, **info, "prompt_bloco": prompt_bloco}
 
 
 def _norm(text: str) -> str:
@@ -192,8 +270,14 @@ def generate_weekly_batch(output_path: Path, force: bool = False) -> dict:
 
     usados = set(historico)
     proibidos_str = ", ".join(historico[-60:]) if historico else "nenhum"
+    contexto_semanal_prompt = "\n".join(
+        f"- dia_{i} -> {get_weekly_context(i)['prompt_bloco']}" for i in range(1, 8)
+    )
 
-    prompt = f"""Crie o conteúdo semanal completo para 7 dias ("dia_1" a "dia_7") na grade oficial de 4 horários diários (07:00, 08:00, 15:00, 22:00).
+    prompt = f"""Crie o conteúdo semanal completo para 7 dias ("dia_1" = Segunda-feira até "dia_7" = Domingo) na grade oficial de 4 horários diários (07:00, 08:00, 15:00, 22:00).
+
+INTELIGÊNCIA DE CONTEXTO SEMANAL (OBRIGATÓRIO ADAPTAR CADA DIA AO SEU MOMENTO REAL DA SEMANA):
+{contexto_semanal_prompt}
 
 REGRAS ESTRITAS NA ESCOLHA DOS VERSÍCULOS:
 - Escolha referências bíblicas **autoexplicativas, edificantes e de impacto imediato** (promessas de Deus, palavras de Jesus, consolo, sabedoria, fé e esperança).
@@ -379,12 +463,37 @@ def verify_batch_literal_ntlh(batch_path: Path) -> list[tuple[str, str, bool]]:
 
 
 def get_day_content(batch_path: Path, day_index: int | None = None) -> tuple[str, dict]:
-    """Retorna (chave_dia, conteudo) do lote semanal."""
+    """Retorna (chave_dia, conteudo) do lote semanal no fuso America/Sao_Paulo."""
     batch = generate_weekly_batch(batch_path, force=False)
     if day_index is None:
-        day_index = datetime.now().isoweekday()
+        day_index = datetime.now(BRT_TZ).isoweekday()
     day_key = f"dia_{day_index}"
     dias = batch.get("dias", batch)
     if day_key not in dias:
         day_key = "dia_1"
     return day_key, dias[day_key]
+
+
+def _run_dry_run_demo() -> None:
+    """Simula a adaptação de contexto semanal para hoje (BRT) e para uma Segunda-feira."""
+    hoje_ctx = get_weekly_context()
+    segunda_ctx = get_weekly_context(weekday=1)
+
+    print("=== [DRY-RUN] Inteligência de Contexto Semanal (America/Sao_Paulo) ===")
+    for label, ctx in (("HOJE (real BRT)", hoje_ctx), ("SEGUNDA-FEIRA (simulada)", segunda_ctx)):
+        print(f"\n[{label}] {ctx['dia_nome']} — {ctx['tema_semanal']}")
+        print(f"  Contexto: {ctx['contexto']}")
+        print(f"  Tom:      {ctx['tom']}")
+        print(f"  Exemplos: {ctx['exemplos']}")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Gerador de Conteúdo Semanal NTLH")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Simula contexto semanal para hoje (BRT) e Segunda-feira sem alterar arquivos.",
+    )
+    args = parser.parse_args()
+    if args.dry_run:
+        _run_dry_run_demo()
