@@ -84,7 +84,7 @@ jobs:
           git add data/historico_versiculos.json data/weekly_batch.json
           $status = git status --porcelain
           if ($status) {
-            git commit -m "chore: atualiza historico NTLH, lote semanal e status de publicacao"
+            git commit -m "chore: atualiza historico NTLH, lote semanal e status de publicacao [skip netlify]"
             git push
           } else {
             Write-Host "Sem alteracoes em data/ para commitar."

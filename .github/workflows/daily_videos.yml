@@ -75,7 +75,7 @@ jobs:
             git add data/historico_videos.json
             $status = git status --porcelain
             if ($status) {
-              git commit -m "chore: atualiza historico de videos Pixabay"
+              git commit -m "chore: atualiza historico de videos Pixabay [skip netlify]"
               git push
             }
           }

@@ -38,6 +38,7 @@
 
 ## Vitrine Link da Bio (`links/` — Deploy Netlify)
 - **Publish directory no Netlify:** `links`
+- **Proteção de créditos (`netlify.toml` + `[skip netlify]`):** `netlify.toml` ignora builds quando não há alteração em `links/` e todos os commits automáticos do GitHub Actions levam `[skip netlify]` para zerar consumo de créditos no dia a dia.
 - **Arquivos:** `links/index.html`, `links/links.json`, `links/assets/logo.jpg` (capas opcionais em `links/assets/produto_1.jpg` a `produto_6.jpg` com fallback `P&P`).
 - **6 Materiais Selecionados:**
   1. *Devocional 30 Dias com Deus para Ser uma Mulher Intencional* (Kiwify)
