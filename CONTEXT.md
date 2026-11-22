@@ -46,4 +46,4 @@
   4. *365 Dias com Jesus* (Hotmart)
   5. *Liderança Cristã Descomplicada para Adolescentes e Jovens* (Hotmart)
   6. *O Ministro de Louvor Completo* (Hotmart)
-- **CTA sutil:** Rotação discreta ao final de `palavra_animo` (15:00) e `devocional_noite` (22:00) entre engajamento e menção ao link da bio `@palavraepaz.oficial`.
+- **CTA sutil:** Rotação discreta garantida em tempo de geração e leitura (`ensure_subtle_cta`) ao final de `palavra_animo` (15:00) e `devocional_noite` (22:00) no IG/FB, e espelhada na descrição + primeiro comentário (`commentThreads.insert`, protegido por `try/except`) no YouTube Shorts apontando para `https://palavraepaz.netlify.app`.

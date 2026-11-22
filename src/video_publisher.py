@@ -77,6 +77,81 @@ def _refresh_youtube_access_token(tok_data: dict) -> str:
     return refreshed["access_token"]
 
 
+VITRINE_URL = "https://palavraepaz.netlify.app"
+
+
+def build_youtube_description(meta: dict) -> str:
+    """Espelha a estrutura acolhedora do IG/FB com CTA discreto + link oficial + hashtags."""
+    base_desc = meta.get("descricao", "").strip()
+    cta_bloco = (
+        "\n\n📖 Para aprofundar seu momento diário com Deus, deixamos devocionais e "
+        f"materiais de edificação separados em: {VITRINE_URL}\n"
+        "Acompanhe também no Instagram e Facebook: @palavraepaz.oficial"
+    )
+    if VITRINE_URL not in base_desc:
+        base_desc = base_desc + cta_bloco
+    return base_desc
+
+
+def build_youtube_first_comment() -> str:
+    """Primeiro comentário discreto e acolhedor no YouTube Shorts com link da vitrine."""
+    return (
+        "Que a paz de Cristo guarde o seu coração hoje! ✝️\n"
+        "📖 Separamos devocionais e materiais de edificação para a sua caminhada diária com Deus: "
+        f"{VITRINE_URL}"
+    )
+
+
+def post_first_comment_youtube(video_id: str, access_token: str) -> dict | None:
+    """Publica primeiro comentário no vídeo via commentThreads.insert (protegido contra erro de escopo)."""
+    if not video_id:
+        return None
+    temp_dir = BASE_DIR / "temp"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    comment_file = temp_dir / "yt_comment.json"
+    payload = {
+        "snippet": {
+            "videoId": video_id,
+            "topLevelComment": {
+                "snippet": {
+                    "textOriginal": build_youtube_first_comment(),
+                }
+            },
+        }
+    }
+    comment_file.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    try:
+        res = subprocess.run(
+            [
+                _curl_bin(), "-s", "--max-time", "30", "-X", "POST",
+                "https://www.googleapis.com/youtube/v3/commentThreads?part=snippet",
+                "-H", f"Authorization: Bearer {access_token}",
+                "-H", "Content-Type: application/json; charset=UTF-8",
+                "--data-binary", f"@{comment_file.resolve()}",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+        )
+        data = json.loads(res.stdout)
+        if "error" in data:
+            print(
+                f"[Aviso YouTube Comentário] Não foi possível comentar (verifique escopo youtube.force-ssl): "
+                f"{data['error'].get('message', data['error'])}"
+            )
+            return None
+        cid = data.get("id", "")
+        print(f"[YouTube Shorts] Primeiro comentário publicado! comment_id={cid}")
+        return data
+    except Exception as exc:
+        print(f"[Aviso YouTube Comentário] Etapa de comentário ignorada sem afetar o vídeo: {exc}")
+        return None
+    finally:
+        if comment_file.exists():
+            comment_file.unlink()
+
+
 def _upload_youtube_via_curl(video_path: Path, meta: dict, access_token: str) -> str:
     """Faz upload resumable no YouTube Data API v3 via curl.exe (Schannel)."""
     temp_dir = BASE_DIR / "temp"
@@ -87,7 +162,7 @@ def _upload_youtube_via_curl(video_path: Path, meta: dict, access_token: str) ->
     body = {
         "snippet": {
             "title": meta["titulo_yt"][:100],
-            "description": meta["descricao"],
+            "description": build_youtube_description(meta),
             "tags": meta.get("tags", []),
             "categoryId": "22",
             "defaultLanguage": "pt-BR",
@@ -167,7 +242,13 @@ def publish_youtube_shorts(video_path: Path, meta: dict, dry_run: bool = True) -
     tok_data = _load_youtube_token_data()
     access_token = _refresh_youtube_access_token(tok_data)
     vid_id = _upload_youtube_via_curl(video_path, meta, access_token)
-    return {"platform": "youtube", "dry_run": False, "video_id": vid_id}
+    comment_res = post_first_comment_youtube(vid_id, access_token)
+    return {
+        "platform": "youtube",
+        "dry_run": False,
+        "video_id": vid_id,
+        "first_comment": bool(comment_res),
+    }
 
 
 def publish_tiktok_video(video_path: Path, meta: dict, dry_run: bool = True) -> dict:

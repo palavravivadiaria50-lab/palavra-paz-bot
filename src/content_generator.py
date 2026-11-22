@@ -462,6 +462,34 @@ def verify_batch_literal_ntlh(batch_path: Path) -> list[tuple[str, str, bool]]:
     return results
 
 
+CTAS_ROTACAO = [
+    "\n\nEnvie esta palavra para alguém que precisa hoje.",
+    "\n\n📖 Para aprofundar seu momento diário com Deus, deixamos devocionais e materiais de edificação separados no link da bio @palavraepaz.oficial",
+]
+
+
+def ensure_subtle_cta(day_key: str, day_data: dict) -> dict:
+    """Garante rotação discreta de CTA em palavra_animo (15:00) e devocional_noite (22:00)."""
+    try:
+        idx = int(day_key.split("_")[-1])
+    except Exception:
+        idx = 1
+
+    pa = day_data.get("palavra_animo")
+    if isinstance(pa, dict):
+        leg = pa.get("legenda", "").rstrip()
+        if "@palavraepaz.oficial" not in leg and "Envie esta palavra para alguém que precisa hoje." not in leg:
+            pa["legenda"] = leg + CTAS_ROTACAO[(idx - 1) % 2]
+
+    dn = day_data.get("devocional_noite")
+    if isinstance(dn, dict):
+        leg = dn.get("legenda_ig", "").rstrip()
+        if "@palavraepaz.oficial" not in leg and "Envie esta palavra para alguém que precisa hoje." not in leg:
+            dn["legenda_ig"] = leg + CTAS_ROTACAO[idx % 2]
+
+    return day_data
+
+
 def get_day_content(batch_path: Path, day_index: int | None = None) -> tuple[str, dict]:
     """Retorna (chave_dia, conteudo) do lote semanal no fuso America/Sao_Paulo."""
     batch = generate_weekly_batch(batch_path, force=False)
@@ -471,7 +499,7 @@ def get_day_content(batch_path: Path, day_index: int | None = None) -> tuple[str
     dias = batch.get("dias", batch)
     if day_key not in dias:
         day_key = "dia_1"
-    return day_key, dias[day_key]
+    return day_key, ensure_subtle_cta(day_key, dias[day_key])
 
 
 def _run_dry_run_demo() -> None:
