@@ -245,7 +245,7 @@ def _call_gemini_curl(prompt: str, api_key: str) -> dict:
 
 
 def generate_weekly_batch(output_path: Path, force: bool = False) -> dict:
-    """Gera lote semanal (07:00, 08:00, 15:00, 22:00) com lookup literal NTLH."""
+    """Gera lote semanal (07:00, 08:00, 15:00, 20:30) com lookup literal NTLH."""
     if output_path.exists() and not force:
         existing = json.loads(output_path.read_text(encoding="utf-8"))
         dias_ex = existing.get("dias", {})
@@ -274,7 +274,7 @@ def generate_weekly_batch(output_path: Path, force: bool = False) -> dict:
         f"- dia_{i} -> {get_weekly_context(i)['prompt_bloco']}" for i in range(1, 8)
     )
 
-    prompt = f"""Crie o conteúdo semanal completo para 7 dias ("dia_1" = Segunda-feira até "dia_7" = Domingo) na grade oficial de 4 horários diários (07:00, 08:00, 15:00, 22:00).
+    prompt = f"""Crie o conteúdo semanal completo para 7 dias ("dia_1" = Segunda-feira até "dia_7" = Domingo) na grade oficial de 4 horários diários (07:00, 08:00, 15:00, 20:30).
 
 INTELIGÊNCIA DE CONTEXTO SEMANAL (OBRIGATÓRIO ADAPTAR CADA DIA AO SEU MOMENTO REAL DA SEMANA):
 {contexto_semanal_prompt}
@@ -469,7 +469,7 @@ CTAS_ROTACAO = [
 
 
 def ensure_subtle_cta(day_key: str, day_data: dict) -> dict:
-    """Garante rotação discreta de CTA em palavra_animo (15:00) e devocional_noite (22:00)."""
+    """Garante rotação discreta de CTA em palavra_animo (15:00) e devocional_noite (20:30)."""
     try:
         idx = int(day_key.split("_")[-1])
     except Exception:

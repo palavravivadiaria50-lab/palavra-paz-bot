@@ -8,8 +8,8 @@ on:
     - cron: '0 11 * * *'
     # 15:00 BRT (18:00 UTC) -> palavra_animo (Card Feed + Stories IG + FB)
     - cron: '0 18 * * *'
-    # 22:00 BRT (01:00 UTC) -> devocional_noite (Carrossel Feed IG + FB)
-    - cron: '0 1 * * *'
+    # 20:30 BRT (23:30 UTC) -> devocional_noite (Carrossel Feed IG + FB)
+    - cron: '30 23 * * *'
   workflow_dispatch:
     inputs:
       slot:
@@ -65,7 +65,7 @@ jobs:
               "0 10 * * *" { $slot = "devocional_manha" }
               "0 11 * * *" { $slot = "versiculo_dia" }
               "0 18 * * *" { $slot = "palavra_animo" }
-              "0 1 * * *"  { $slot = "devocional_noite" }
+              "30 23 * * *" { $slot = "devocional_noite" }
               default      { throw "Schedule nao mapeado: ${{ github.event.schedule }}" }
             }
           }

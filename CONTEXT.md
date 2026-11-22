@@ -11,7 +11,7 @@
 - `07:00` (`devocional_manha`) → Carrossel 3 slides (`1080x1350`) → **Apenas Feed** (Instagram e Facebook).
 - `08:00` (`versiculo_dia`) → Card Único (`1080x1350` Feed) + Versão Nativa (`1080x1920` Stories) → **Feed + Stories** (Instagram e Facebook).
 - `15:00` (`palavra_animo`) → Card Único (`1080x1350` Feed) + Versão Nativa (`1080x1920` Stories) → **Feed + Stories** (Instagram e Facebook).
-- `22:00` (`devocional_noite`) → Carrossel 3 slides (`1080x1350`) → **Apenas Feed** (Instagram e Facebook).
+- `20:30` (`devocional_noite`) → Carrossel 3 slides (`1080x1350`) → **Apenas Feed** (Instagram e Facebook).
 - **Safe Zone Stories (`1080x1920` — 9:16):** Margem superior `>= 260px`, margem inferior `>= 240px`, margens laterais `>= 110px` (evita zoom/corte automático do Instagram).
 
 ---
@@ -46,4 +46,4 @@
   4. *365 Dias com Jesus* (Hotmart)
   5. *Liderança Cristã Descomplicada para Adolescentes e Jovens* (Hotmart)
   6. *O Ministro de Louvor Completo* (Hotmart)
-- **CTA sutil:** Rotação discreta garantida em tempo de geração e leitura (`ensure_subtle_cta`) ao final de `palavra_animo` (15:00) e `devocional_noite` (22:00) no IG/FB, e espelhada na descrição + primeiro comentário (`commentThreads.insert`, protegido por `try/except`) no YouTube Shorts apontando para `https://palavraepaz.netlify.app`.
+- **CTA sutil:** Rotação discreta garantida em tempo de geração e leitura (`ensure_subtle_cta`) ao final de `palavra_animo` (15:00) e `devocional_noite` (20:30) no IG/FB, e espelhada na descrição + primeiro comentário (`commentThreads.insert`, protegido por `try/except`) no YouTube Shorts apontando para `https://palavraepaz.netlify.app`.
