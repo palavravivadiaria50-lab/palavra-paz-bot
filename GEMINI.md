@@ -24,3 +24,7 @@
 - Resolução fixa: `1080x1350` (JPEG qualidade 95).
 - Alternância diária entre `papel_minimalista` (`#F7F5F0`) e `foto_aesthetic` (foto Pixabay com overlay escuro `RGBA(0,0,0,95)`).
 - Assinatura obrigatória discreta `@palavraepaz.oficial` no rodapé.
+
+## 5. Dossiê Vivo (`CONTEXT.md`)
+- Ao final de toda execução ou conversa relevante, atualizar o arquivo `CONTEXT.md` como dossiê vivo consolidando tudo o que está pronto, ativo e pendente.
+- Commits que não alterem a pasta `links/` devem incluir `[skip netlify]` na mensagem para economizar créditos no Netlify.
